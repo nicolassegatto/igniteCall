@@ -1,3 +1,4 @@
+import { zodResolver } from '@hookform/resolvers/zod'
 import {
   Button,
   Checkbox,
@@ -6,6 +7,12 @@ import {
   Text,
   TextInput,
 } from '@ignite-ui/react'
+import { ArrowRight } from 'phosphor-react'
+import { Controller, useFieldArray, useForm } from 'react-hook-form'
+import { z } from 'zod'
+import { api } from '@/lib/axios'
+import { convertTimeStringToMinutes } from '@/utils/convert-Time-In-Minutes'
+import { getWeekDays } from '@/utils/get-week-days'
 import { Container, Header } from '../styles'
 import {
   IntervalBox,
@@ -15,19 +22,12 @@ import {
   IntervalsContainer,
   FormError,
 } from './styles'
-import { ArrowRight } from 'phosphor-react'
-import { Controller, useFieldArray, useForm } from 'react-hook-form'
-import { z } from 'zod'
-import { getWeekDays } from '@/utils/get-week-days'
-import { zodResolver } from '@hookform/resolvers/zod'
-import { convertTimeStringToMinutes } from '@/utils/convert-Time-In-Minutes'
-import { api } from '@/lib/axios'
 
 const timeIntervalsFormSchema = z.object({
   intervals: z
     .array(
       z.object({
-        weekday: z.number().min(0).max(6),
+        weekDay: z.number().min(0).max(6),
         enabled: z.boolean(),
         startTime: z.string(),
         endTime: z.string(),
@@ -41,7 +41,7 @@ const timeIntervalsFormSchema = z.object({
     .transform((intervals) => {
       return intervals.map((interval) => {
         return {
-          weekday: interval.weekday,
+          weekDay: interval.weekDay,
           startTimeInMinutes: convertTimeStringToMinutes(interval.startTime),
           endTimeInMinutes: convertTimeStringToMinutes(interval.endTime),
         }
@@ -75,13 +75,13 @@ export default function TimeIntervals() {
     resolver: zodResolver(timeIntervalsFormSchema),
     defaultValues: {
       intervals: [
-        { weekday: 0, enabled: false, startTime: '08:00', endTime: '18:00' },
-        { weekday: 1, enabled: true, startTime: '08:00', endTime: '18:00' },
-        { weekday: 2, enabled: true, startTime: '08:00', endTime: '18:00' },
-        { weekday: 3, enabled: true, startTime: '08:00', endTime: '18:00' },
-        { weekday: 4, enabled: true, startTime: '08:00', endTime: '18:00' },
-        { weekday: 5, enabled: true, startTime: '08:00', endTime: '18:00' },
-        { weekday: 6, enabled: false, startTime: '08:00', endTime: '18:00' },
+        { weekDay: 0, enabled: false, startTime: '08:00', endTime: '18:00' },
+        { weekDay: 1, enabled: true, startTime: '08:00', endTime: '18:00' },
+        { weekDay: 2, enabled: true, startTime: '08:00', endTime: '18:00' },
+        { weekDay: 3, enabled: true, startTime: '08:00', endTime: '18:00' },
+        { weekDay: 4, enabled: true, startTime: '08:00', endTime: '18:00' },
+        { weekDay: 5, enabled: true, startTime: '08:00', endTime: '18:00' },
+        { weekDay: 6, enabled: false, startTime: '08:00', endTime: '18:00' },
       ],
     },
   })
@@ -96,8 +96,9 @@ export default function TimeIntervals() {
   const intervals = watch('intervals')
 
   async function handleSetTimeIntervals(data: TimeIntervalsFormOutput) {
+    const { intervals } = data as TimeIntervalsFormOutput
     await api.post('/users/time-intervals', {
-      intervals: data.intervals,
+      intervals,
     })
   }
 
@@ -133,7 +134,7 @@ export default function TimeIntervals() {
                       )
                     }}
                   />
-                  <Text>{weekDays[field.weekday]}</Text>
+                  <Text>{weekDays[field.weekDay]}</Text>
                 </IntervalDay>
                 <IntervalInputs>
                   <TextInput
